@@ -1,3 +1,3 @@
 export default defineBackground(() => {
-  console.log('Hello background!', { id: browser.runtime.id });
+	console.log('Ollama Translate background script loaded', { id: browser.runtime.id });
 });
