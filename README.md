@@ -2,6 +2,10 @@
 
 Local immersive translation Chrome extension powered by Ollama and TranslateGemma models.
 
+## Demo
+
+https://github.com/user-attachments/assets/fa962876-dc99-4193-810a-241df113d8e6
+
 ## Features
 
 - Bilingual display: Shows translations below original paragraphs
