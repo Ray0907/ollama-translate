@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { settings, ollama_status, saveGlobalSettings } from '../stores/settings';
 
+	// Auto-select first model if current setting not in list
+	$: if ($ollama_status.models.length > 0 && !$ollama_status.models.includes($settings.model)) {
+		saveGlobalSettings({ model: $ollama_status.models[0] });
+	}
+
 	async function handleChange(e: Event) {
 		const target = e.target as HTMLSelectElement;
 		await saveGlobalSettings({ model: target.value });

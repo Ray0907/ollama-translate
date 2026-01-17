@@ -13,7 +13,7 @@ export default defineConfig({
 	manifest: {
 		name: 'Ollama Translate',
 		description: 'Local immersive translation powered by Ollama',
-		permissions: ['storage', 'activeTab'],
+		permissions: ['storage', 'activeTab', 'tabs'],
 		host_permissions: ['http://localhost:11434/*'],
 		icons: {
 			16: 'icon/16.png',

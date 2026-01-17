@@ -26,9 +26,33 @@
 
 	async function translateCurrentPage() {
 		const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-		if (tab?.id) {
+		console.log('[Popup] translateCurrentPage called, tab:', tab);
+
+		if (!tab) {
+			console.error('[Popup] No active tab found');
+			alert('No active tab found.');
+			return;
+		}
+
+		if (!tab.id) {
+			console.error('[Popup] Tab has no ID');
+			alert('Cannot access this tab.');
+			return;
+		}
+
+		// Check if it's a restricted URL
+		if (tab.url?.startsWith('chrome://') || tab.url?.startsWith('chrome-extension://')) {
+			alert('Cannot translate Chrome internal pages.');
+			return;
+		}
+
+		try {
 			await chrome.tabs.sendMessage(tab.id, { action: 'trigger_translate' });
 			window.close();
+		} catch (err) {
+			// Content script not loaded
+			console.error('[Popup] Failed to send message:', err);
+			alert('Please refresh the page and try again.');
 		}
 	}
 </script>
