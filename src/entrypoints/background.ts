@@ -1,3 +1,6 @@
+import { setupMessageHandlers } from '../background/messages';
+
 export default defineBackground(() => {
-	console.log('Ollama Translate background script loaded', { id: browser.runtime.id });
+	console.log('Ollama Translate background script loaded');
+	setupMessageHandlers();
 });
