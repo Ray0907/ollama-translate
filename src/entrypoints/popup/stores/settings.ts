@@ -27,6 +27,37 @@ export const translate_models = derived(ollama_status, ($status) => {
 	);
 });
 
+// Helper to send message with retry and wake-up
+async function sendMessageWithRetry<T>(
+	message: unknown,
+	max_retries = 5
+): Promise<T> {
+	for (let i = 0; i < max_retries; i++) {
+		try {
+			// First, try to wake up the service worker by getting its registration
+			if (i > 0) {
+				try {
+					await chrome.runtime.getBackgroundPage?.();
+				} catch {
+					// MV3 doesn't support getBackgroundPage, that's ok
+				}
+			}
+
+			const response = await chrome.runtime.sendMessage(message);
+			if (chrome.runtime.lastError) {
+				throw new Error(chrome.runtime.lastError.message);
+			}
+			return response as T;
+		} catch (err) {
+			console.log(`[Popup] Attempt ${i + 1} failed:`, err);
+			if (i === max_retries - 1) throw err;
+			// Wait longer before retrying
+			await new Promise((resolve) => setTimeout(resolve, 200 * (i + 1)));
+		}
+	}
+	throw new Error('Failed to send message');
+}
+
 // Initialize stores from background
 export async function initializeStores(): Promise<void> {
 	is_loading.set(true);
@@ -39,11 +70,18 @@ export async function initializeStores(): Promise<void> {
 		current_domain.set(domain);
 
 		// Check Ollama connection
-		const status = await chrome.runtime.sendMessage({ action: 'check_connection' });
+		const status = await sendMessageWithRetry<OllamaStatus>({ action: 'check_connection' });
 		ollama_status.set(status);
 
 		// Get settings
-		const effective_settings = await chrome.runtime.sendMessage({
+		const effective_settings = await sendMessageWithRetry<{
+			target_lang: string;
+			model: string;
+			temperature: number;
+			custom_prompt: string | null;
+			ollama_url: string;
+			auto_translate: boolean;
+		}>({
 			action: 'get_settings',
 			domain,
 		});
@@ -69,7 +107,7 @@ export async function initializeStores(): Promise<void> {
 export async function saveGlobalSettings(
 	updates: Partial<GlobalSettings>
 ): Promise<void> {
-	await chrome.runtime.sendMessage({
+	await sendMessageWithRetry({
 		action: 'update_global_settings',
 		updates,
 	});
@@ -82,7 +120,7 @@ export async function saveSiteSettings(
 	domain: string,
 	auto_translate: boolean
 ): Promise<void> {
-	await chrome.runtime.sendMessage({
+	await sendMessageWithRetry({
 		action: 'update_site_settings',
 		domain,
 		updates: { auto_translate },
@@ -93,6 +131,6 @@ export async function saveSiteSettings(
 
 // Retry connection
 export async function retryConnection(): Promise<void> {
-	const status = await chrome.runtime.sendMessage({ action: 'check_connection' });
+	const status = await sendMessageWithRetry<OllamaStatus>({ action: 'check_connection' });
 	ollama_status.set(status);
 }

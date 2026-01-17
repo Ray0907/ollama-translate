@@ -39,7 +39,12 @@
 	</header>
 
 	{#if $is_loading}
-		<div class="loading">Loading...</div>
+		<div class="loading">
+			<div class="skeleton skeleton-status"></div>
+			<div class="skeleton skeleton-field"></div>
+			<div class="skeleton skeleton-field"></div>
+			<div class="skeleton skeleton-btn"></div>
+		</div>
 	{:else}
 		<div class="content">
 			<ErrorDisplay />
@@ -93,9 +98,34 @@
 	}
 
 	.loading {
-		padding: 2rem;
-		text-align: center;
-		color: #6b7280;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.skeleton {
+		background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+		background-size: 200% 100%;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+		border-radius: 6px;
+	}
+
+	.skeleton-status {
+		height: 40px;
+	}
+
+	.skeleton-field {
+		height: 60px;
+	}
+
+	.skeleton-btn {
+		height: 44px;
+		margin-top: 0.5rem;
+	}
+
+	@keyframes skeleton-pulse {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
 	}
 
 	.content {
@@ -121,12 +151,25 @@
 		font-size: 0.875rem;
 		color: #374151;
 		cursor: pointer;
+		padding: 0.25rem;
+		border-radius: 4px;
+		transition: background-color 150ms;
+	}
+
+	.checkbox-label:hover {
+		background: #f9fafb;
 	}
 
 	.checkbox-label input {
 		width: 1rem;
 		height: 1rem;
 		cursor: pointer;
+		accent-color: #f59e0b;
+	}
+
+	.checkbox-label input:focus-visible {
+		outline: 2px solid #f59e0b;
+		outline-offset: 2px;
 	}
 
 	.translate-btn {
@@ -140,7 +183,7 @@
 		font-size: 0.875rem;
 		font-weight: 600;
 		cursor: pointer;
-		transition: background 150ms;
+		transition: background 150ms, transform 100ms, box-shadow 150ms;
 	}
 
 	.translate-btn:hover {
@@ -149,6 +192,12 @@
 
 	.translate-btn:active {
 		background: #b45309;
+		transform: scale(0.98);
+	}
+
+	.translate-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px white, 0 0 0 4px #f59e0b;
 	}
 
 	@media (prefers-color-scheme: dark) {
@@ -160,8 +209,21 @@
 			color: #f3f4f6;
 		}
 
+		.skeleton {
+			background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+			background-size: 200% 100%;
+		}
+
 		.checkbox-label {
 			color: #d1d5db;
+		}
+
+		.checkbox-label:hover {
+			background: #1f2937;
+		}
+
+		.translate-btn:focus-visible {
+			box-shadow: 0 0 0 2px #111827, 0 0 0 4px #f59e0b;
 		}
 	}
 </style>

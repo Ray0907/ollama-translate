@@ -72,4 +72,12 @@ export type TranslationError =
 	| { code: 'OLLAMA_OFFLINE'; message: string }
 	| { code: 'MODEL_NOT_FOUND'; message: string; model: string }
 	| { code: 'NETWORK_ERROR'; message: string }
-	| { code: 'TIMEOUT'; message: string; paragraph_id: string };
+	| { code: 'TIMEOUT'; message: string; paragraph_id: string }
+	| { code: 'CANCELLED'; message: string };
+
+// Progress update type
+export type ProgressUpdate = {
+	action: 'progress';
+	current: number;
+	total: number;
+};

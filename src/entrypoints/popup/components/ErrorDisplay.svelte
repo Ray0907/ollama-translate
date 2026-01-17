@@ -111,6 +111,11 @@
 		cursor: pointer;
 		text-decoration: none;
 		border: none;
+		transition: background-color 150ms, transform 100ms, box-shadow 150ms;
+	}
+
+	.btn:active:not(:disabled) {
+		transform: scale(0.95);
 	}
 
 	.btn-primary {
@@ -120,6 +125,11 @@
 
 	.btn-primary:hover:not(:disabled) {
 		background: #dc2626;
+	}
+
+	.btn-primary:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px #fef2f2, 0 0 0 4px #ef4444;
 	}
 
 	.btn-primary:disabled {
@@ -135,6 +145,11 @@
 
 	.btn-secondary:hover {
 		background: #fef2f2;
+	}
+
+	.btn-secondary:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px white, 0 0 0 4px #ef4444;
 	}
 
 	@media (prefers-color-scheme: dark) {

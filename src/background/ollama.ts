@@ -2,6 +2,27 @@ import type { OllamaStatus, TranslationError } from '../shared/types';
 import { TRANSLATION_TIMEOUT, MAX_RETRIES } from '../shared/constants';
 import { getGlobalSettings } from './storage';
 
+// Store active AbortController for cancellation
+let active_controller: AbortController | null = null;
+let is_cancelled = false;
+
+export function cancelTranslation(): void {
+	is_cancelled = true;
+	if (active_controller) {
+		active_controller.abort();
+		active_controller = null;
+	}
+}
+
+export function isTranslationCancelled(): boolean {
+	return is_cancelled;
+}
+
+export function resetCancellation(): void {
+	is_cancelled = false;
+	active_controller = null;
+}
+
 export async function checkConnection(): Promise<OllamaStatus> {
 	const settings = await getGlobalSettings();
 
@@ -52,8 +73,14 @@ export async function translateText(
 	let last_error: Error | null = null;
 
 	for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+		// Check if cancelled before starting
+		if (is_cancelled) {
+			throw { code: 'CANCELLED', message: 'Translation cancelled' } as TranslationError;
+		}
+
 		try {
 			const controller = new AbortController();
+			active_controller = controller;
 			const timeout_id = setTimeout(() => controller.abort(), TRANSLATION_TIMEOUT);
 
 			const response = await fetch(`${settings.ollama_url}/api/chat`, {
@@ -94,6 +121,12 @@ export async function translateText(
 			let full_text = '';
 
 			while (true) {
+				// Check if cancelled during streaming
+				if (is_cancelled) {
+					reader.cancel();
+					throw { code: 'CANCELLED', message: 'Translation cancelled' } as TranslationError;
+				}
+
 				const { done, value } = await reader.read();
 				if (done) break;
 
@@ -113,6 +146,7 @@ export async function translateText(
 				}
 			}
 
+			active_controller = null;
 			return full_text.trim();
 
 		} catch (err) {
@@ -121,6 +155,11 @@ export async function translateText(
 			// Don't retry on specific errors
 			if ((err as TranslationError).code === 'MODEL_NOT_FOUND') {
 				throw err;
+			}
+
+			// Don't retry on cancellation
+			if ((err as TranslationError).code === 'CANCELLED' || is_cancelled) {
+				throw { code: 'CANCELLED', message: 'Translation cancelled' } as TranslationError;
 			}
 
 			if (attempt < MAX_RETRIES) {

@@ -8,12 +8,12 @@ const STORAGE_KEYS = {
 
 export async function getGlobalSettings(): Promise<GlobalSettings> {
 	const result = await chrome.storage.local.get(STORAGE_KEYS.GLOBAL);
-	return result[STORAGE_KEYS.GLOBAL] || getDefaultSettings();
+	return (result[STORAGE_KEYS.GLOBAL] as GlobalSettings | undefined) || getDefaultSettings();
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
 	const result = await chrome.storage.local.get(STORAGE_KEYS.SITES);
-	return result[STORAGE_KEYS.SITES] || {};
+	return (result[STORAGE_KEYS.SITES] as SiteSettings | undefined) || ({} as SiteSettings);
 }
 
 export async function getEffectiveSettings(domain?: string): Promise<EffectiveSettings> {

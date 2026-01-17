@@ -51,12 +51,23 @@
 		font-size: 0.875rem;
 		background: white;
 		cursor: pointer;
+		transition: border-color 150ms, box-shadow 150ms;
+	}
+
+	select:hover:not(:disabled) {
+		border-color: #9ca3af;
 	}
 
 	select:focus {
 		outline: none;
 		border-color: #f59e0b;
 		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+	}
+
+	select:focus-visible {
+		outline: none;
+		border-color: #f59e0b;
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
 	}
 
 	select:disabled {
@@ -86,6 +97,10 @@
 			background: #1f2937;
 			border-color: #374151;
 			color: #f3f4f6;
+		}
+
+		select:hover:not(:disabled) {
+			border-color: #4b5563;
 		}
 
 		.hint {

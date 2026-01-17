@@ -2,7 +2,7 @@
   "name": "ollama-translate",
   "description": "Local immersive translation powered by Ollama",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -17,6 +17,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.18",
     "@tsconfig/svelte": "^5.0.6",
+    "@types/chrome": "^0.1.33",
     "@wxt-dev/module-svelte": "^2.0.4",
     "svelte": "^5.46.0",
     "svelte-check": "^4.3.4",
@@ -24,5 +25,6 @@
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "wxt": "^0.20.6"
-  }
+  },
+  "packageManager": "pnpm@10.27.0+sha512.72d699da16b1179c14ba9e64dc71c9a40988cbdc65c264cb0e489db7de917f20dcf4d64d8723625f2969ba52d4b7e2a1170682d9ac2a5dcaeaab732b7e16f04a"
 }

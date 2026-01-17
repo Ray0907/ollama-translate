@@ -64,10 +64,20 @@
 		border: none;
 		border-radius: 4px;
 		cursor: pointer;
+		transition: background-color 150ms, transform 100ms, box-shadow 150ms;
 	}
 
 	.retry-btn:hover:not(:disabled) {
 		background: #dc2626;
+	}
+
+	.retry-btn:active:not(:disabled) {
+		transform: scale(0.95);
+	}
+
+	.retry-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px #fef2f2, 0 0 0 4px #ef4444;
 	}
 
 	.retry-btn:disabled {

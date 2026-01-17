@@ -5,9 +5,17 @@ import type {
 	CheckConnectionRequest,
 	StatusUpdate,
 	TranslateResponse,
+	ProgressUpdate,
 } from '../shared/types';
 import { getEffectiveSettings, updateGlobalSettings, updateSiteSettings } from './storage';
-import { checkConnection, getAvailableModels, translateText } from './ollama';
+import {
+	checkConnection,
+	getAvailableModels,
+	translateText,
+	cancelTranslation,
+	isTranslationCancelled,
+	resetCancellation,
+} from './ollama';
 
 type MessageRequest =
 	| TranslateRequest
@@ -15,7 +23,8 @@ type MessageRequest =
 	| GetModelsRequest
 	| CheckConnectionRequest
 	| { action: 'update_global_settings'; updates: Record<string, unknown> }
-	| { action: 'update_site_settings'; domain: string; updates: Record<string, unknown> };
+	| { action: 'update_site_settings'; domain: string; updates: Record<string, unknown> }
+	| { action: 'cancel_translation' };
 
 export function setupMessageHandlers(): void {
 	chrome.runtime.onMessage.addListener((
@@ -59,6 +68,11 @@ async function handleMessage(
 			return { success: true };
 		}
 
+		case 'cancel_translation': {
+			cancelTranslation();
+			return { success: true };
+		}
+
 		case 'translate': {
 			const { paragraphs, target_lang, source_lang } = request as TranslateRequest;
 			const tab_id = sender.tab?.id;
@@ -67,8 +81,32 @@ async function handleMessage(
 				return { error: 'No tab ID' };
 			}
 
+			// Reset cancellation state before starting
+			resetCancellation();
+
+			const total = paragraphs.length;
+
 			// Process paragraphs sequentially
-			for (const para of paragraphs) {
+			for (let i = 0; i < paragraphs.length; i++) {
+				const para = paragraphs[i];
+
+				// Check if cancelled before processing next paragraph
+				if (isTranslationCancelled()) {
+					// Mark remaining paragraphs as cancelled
+					for (let j = i; j < paragraphs.length; j++) {
+						await sendStatusUpdate(tab_id, {
+							action: 'status',
+							paragraph_id: paragraphs[j].id,
+							status: 'error',
+							error: 'Cancelled',
+						});
+					}
+					return { success: false, cancelled: true };
+				}
+
+				// Send progress update
+				await sendProgressUpdate(tab_id, { action: 'progress', current: i + 1, total });
+
 				// Send status update: translating
 				await sendStatusUpdate(tab_id, {
 					action: 'status',
@@ -112,6 +150,27 @@ async function handleMessage(
 
 				} catch (err) {
 					const error = err as { code?: string; message?: string };
+
+					// If cancelled, mark remaining as cancelled and exit
+					if (error.code === 'CANCELLED' || isTranslationCancelled()) {
+						await sendStatusUpdate(tab_id, {
+							action: 'status',
+							paragraph_id: para.id,
+							status: 'error',
+							error: 'Cancelled',
+						});
+						// Mark remaining paragraphs
+						for (let j = i + 1; j < paragraphs.length; j++) {
+							await sendStatusUpdate(tab_id, {
+								action: 'status',
+								paragraph_id: paragraphs[j].id,
+								status: 'error',
+								error: 'Cancelled',
+							});
+						}
+						return { success: false, cancelled: true };
+					}
+
 					await sendStatusUpdate(tab_id, {
 						action: 'status',
 						paragraph_id: para.id,
@@ -130,6 +189,14 @@ async function handleMessage(
 }
 
 async function sendStatusUpdate(tab_id: number, update: StatusUpdate): Promise<void> {
+	try {
+		await chrome.tabs.sendMessage(tab_id, update);
+	} catch {
+		// Tab might be closed
+	}
+}
+
+async function sendProgressUpdate(tab_id: number, update: ProgressUpdate): Promise<void> {
 	try {
 		await chrome.tabs.sendMessage(tab_id, update);
 	} catch {

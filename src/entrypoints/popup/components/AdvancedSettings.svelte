@@ -73,14 +73,21 @@
 		gap: 0.5rem;
 		background: none;
 		border: none;
-		padding: 0;
+		padding: 0.25rem 0;
 		font-size: 0.875rem;
 		color: #6b7280;
 		cursor: pointer;
+		border-radius: 4px;
+		transition: color 150ms;
 	}
 
 	.toggle:hover {
 		color: #374151;
+	}
+
+	.toggle:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
 	}
 
 	.arrow {
@@ -122,11 +129,22 @@
 		font-size: 0.8rem;
 		font-family: inherit;
 		resize: vertical;
+		transition: border-color 150ms, box-shadow 150ms;
+	}
+
+	textarea:hover {
+		border-color: #9ca3af;
 	}
 
 	textarea:focus {
 		outline: none;
 		border-color: #f59e0b;
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+	}
+
+	input[type="range"]:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.3);
 	}
 
 	@media (prefers-color-scheme: dark) {
@@ -150,6 +168,10 @@
 			background: #1f2937;
 			border-color: #374151;
 			color: #f3f4f6;
+		}
+
+		textarea:hover {
+			border-color: #4b5563;
 		}
 	}
 </style>
